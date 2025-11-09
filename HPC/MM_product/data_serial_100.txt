@@ -1,0 +1,4 @@
+calculation time: 0.003853, total time is: 0.003993
+calculation time: 0.003844, total time is: 0.003996
+calculation time: 0.003725, total time is: 0.003874
+calculation time: 0.003730, total time is: 0.003882

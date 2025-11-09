@@ -1,0 +1,12 @@
+calculation time: 2.237065, total time is: 2.284469, n:64 
+calculation time: 41.003672, total time is: 41.057610, n:4 
+calculation time: 45.562517, total time is: 45.622437, n:4 
+calculation time: 117.521363, total time is: 117.578787, n:2 
+calculation time: 132.098869, total time is: 132.153298, n:2 
+calculation time: 3.433912, total time is: 3.478895, n:32 
+calculation time: 3.101601, total time is: 3.150385, n:32 
+calculation time: 5.385542, total time is: 5.424682, n:16 
+calculation time: 6.001724, total time is: 6.051821, n:16 
+calculation time: 18.437128, total time is: 18.494174, n:8 
+calculation time: 37.722761, total time is: 37.771875, n:8 
+calculation time: 2.372840, total time is: 2.419913, n:64 

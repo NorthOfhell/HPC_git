@@ -1,0 +1,17 @@
+n time: 0.331712, total time is: 0.343853, n:8 
+calculation time: 0.738723, total time is: 0.750613, n:4 
+calculation time: 0.735761, total time is: 0.747402, n:4 
+calculation time: 0.162152, total time is: 0.177399, n:16 
+calculation time: 0.200761, total time is: 0.211873, n:16 
+calculation time: 0.675919, total time is: 0.688337, n:8 
+calculation time: 2.021080, total time is: 2.034062, n:2 
+calculation time: 2.198514, total time is: 2.211923, n:2 
+calculation time: 0.280351, total time is: 0.291442, n:16 
+calculation time: 0.156085, total time is: 0.166844, n:32 
+calculation time: 0.141177, total time is: 0.152404, n:32 
+calculation time: 0.145034, total time is: 0.156644, n:32 
+calculation time: 2.790169, total time is: 2.803381, n:2 
+calculation time: 0.054852, total time is: 0.069963, n:64 
+calculation time: 0.054742, total time is: 0.070000, n:64 
+calculation time: 0.051844, total time is: 0.068499, n:64 
+calculation time: 0.055472, total time is: 0.070476, n:64 

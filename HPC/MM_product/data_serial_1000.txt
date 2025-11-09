@@ -1,0 +1,8 @@
+calculation time: 6.500832, total time is: 6.518854
+calculation time: 6.357736, total time is: 6.375099
+calculation time: 10.327649, total time is: 10.345743
+calculation time: 10.153143, total time is: 10.172020
+calculation time: 17.270172, total time is: 17.290859
+calculation time: 5.880822, total time is: 5.897891
+calculation time: 5.938235, total time is: 5.955403
+calculation time: 6.037196, total time is: 6.054112
