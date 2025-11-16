@@ -242,25 +242,34 @@ void Solve()
 
   FILE *f;
 
-  int sweeps_per_exchange = 1;
-
+  int sweeps_per_exchange = 3;
+  int count_sweeps = 0;
   while (global_delta > precision_goal && count < max_iter)
   {
-      delta = 0.0;
+    delta = 0.0;
 
-      for (int s = 0; s < sweeps_per_exchange; s++)
+      Debug("Do_Step red", 0);
+      delta1 = Do_Step(phase);
+      count_sweeps++;
+
+      if (count_sweeps == sweeps_per_exchange)
       {
-          Debug("Do_Step red", 0);
-          delta1 = Do_Step(phase);
-
-          Debug("Do_Step black", 0);
-          delta2 = Do_Step(!phase);
-
-          delta = max(delta1, delta2);
-          count++;
+        count_sweeps = 0;
+        Exchange_Borders();
       }
 
-      Exchange_Borders();
+      Debug("Do_Step black", 0);
+      delta2 = Do_Step(!phase);
+      count_sweeps++;
+
+      if (count_sweeps == sweeps_per_exchange)
+      {
+        count_sweeps = 0;
+        Exchange_Borders();
+      }
+
+      delta = max(delta1, delta2);
+      count++;
 
       MPI_Allreduce(&delta, &global_delta, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
   }
