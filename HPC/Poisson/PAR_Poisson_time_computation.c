@@ -29,6 +29,7 @@ MPI_Datatype border_type[2]; /*border communication type*/
 MPI_Status status;
 
 double wtime;     /* wallclock time */
+double comp_time;
 
 /* benchmark related variables */
 clock_t ticks;			/* number of systemticks */
@@ -58,7 +59,7 @@ void start_timer()
 {
 	if (!timer_on)
 	{
-	MPI_Barrier(grid_comm);
+  MPI_Barrier(grid_comm);;
 	ticks = clock();
 	wtime = MPI_Wtime(); 
 	timer_on = 1;
@@ -230,6 +231,7 @@ double Do_Step(int parity)
 
 void Solve()
 {
+  comp_time = MPI_Wtime();
   int count = 0;
   double delta;
   double delta1, delta2;
@@ -240,43 +242,24 @@ void Solve()
   /* give global_delta a higher value then precision_goal */
   double global_delta = 2 * precision_goal;
 
-  FILE *f;
-
-  int sweeps_per_exchange = 2;
-  int count_sweeps = 0;
   while (global_delta > precision_goal && count < max_iter)
-  {
-    delta = 0.0;
+  { Debug("Do_Step 0", 0);
 
-      Debug("Do_Step red", 0);
-      delta1 = Do_Step(phase);
-      count_sweeps++;
+  delta1 = Do_Step(phase);
+  Exchange_Borders();
+  Debug("Do_Step 1", 0);
 
-      if (count_sweeps == sweeps_per_exchange)
-      {
-        count_sweeps = 0;
-        Exchange_Borders();
-      }
+  delta2 = Do_Step(!phase);
+  Exchange_Borders();
+  Debug("Do_Step 2", 0);
 
-      Debug("Do_Step black", 0);
-      delta2 = Do_Step(!phase);
-      count_sweeps++;
+  delta = max(delta1, delta2);
+  MPI_Allreduce(&delta, &global_delta, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
 
-      if (count_sweeps == sweeps_per_exchange)
-      {
-        count_sweeps = 0;
-        Exchange_Borders();
-      }
-
-      delta = max(delta1, delta2);
-      count++;
-
-      MPI_Allreduce(&delta, &global_delta, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
+  count++;
   }
-
-printf("(%i): Number of iterations : %i\n", proc_rank, count);
+  printf("(%i): Number of iterations : %i, computation time : %f\n", proc_rank, count, MPI_Wtime() - comp_time);
 }
-
 void Write_Grid()
 {
   int x, y;
@@ -382,8 +365,7 @@ int main(int argc, char **argv)
   Setup_Proc_Grid(argc, argv);
   start_timer();
   Setup_Grid();
-  //printf("%i, %i, %i, %i\n", dim[X_DIR], offset[X_DIR], dim[Y_DIR], offset[Y_DIR]);
-  printf("%f \n", relaxation);
+  
   Setup_MPI_Datatypes();
   Solve();
 

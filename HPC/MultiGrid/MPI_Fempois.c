@@ -496,7 +496,7 @@ void Solve()
       /* p = r */
       for (i = 0; i < N_vert; i++)
 	p[i] = r[i];
-    }
+      }
     else
     {
       b = r1 / r2;
