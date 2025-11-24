@@ -1,10 +1,7 @@
 import numpy as np
 import os
 
-
-
-filename = "data/1.2.3"
-
+filename = "data/1.2.3_only_computation"
 with open(filename, 'r') as f:
     lines = [line.strip() for line in f if line.strip()]
 

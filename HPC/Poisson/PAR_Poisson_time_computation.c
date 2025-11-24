@@ -258,7 +258,15 @@ void Solve()
 
   count++;
   }
-  printf("(%i): Number of iterations : %i, computation time : %f\n", proc_rank, count, MPI_Wtime() - comp_time);
+
+  double computation_time = MPI_Wtime() - comp_time;
+  MPI_Allreduce(MPI_IN_PLACE, &computation_time, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
+  if (proc_rank == 0)
+  {
+    printf("Number of iterations : %i, computation time : %f\n", count, MPI_Wtime() - comp_time);
+  }
+ 
+  
 }
 void Write_Grid()
 {
@@ -369,7 +377,7 @@ int main(int argc, char **argv)
   Setup_MPI_Datatypes();
   Solve();
 
-  Write_Grid();
+ //Write_Grid();
 
   print_timer();
 
