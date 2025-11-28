@@ -4,10 +4,13 @@ import os
 
 # ---------- USER PARAMETERS ----------
 filenames = ["output1.dat", "output2.dat", "output3.dat", "output0.dat"]
+
+filenames = ["output400.dat"]
+
 # order: [top-left, top-right, bottom-left, bottom-right]
 
 full_nx = full_ny = 400
-tiles_x = tiles_y = 2   # 2x2 tile layout
+tiles_x = tiles_y = 1   # 2x2 tile layout
 dtype_save = np.float32  # save as float32 to reduce memory on disk
 # -------------------------------------
 
@@ -146,7 +149,7 @@ block = full_nx // 800
 if block < 1:
     block = 1
 
-grid_coarse = block_mean(big, block=block)
+grid_coarse = 4 * block_mean(big, block=block)
 plt.figure(figsize=(6,6))
 plt.imshow(grid_coarse, origin="lower", interpolation="nearest")
 plt.title(f"Downsampled view (block={block})")

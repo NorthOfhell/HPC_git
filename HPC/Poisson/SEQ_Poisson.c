@@ -105,10 +105,12 @@ void Setup_Grid()
   fscanf(f, "precision goal: %lf\n", &precision_goal);
   fscanf(f, "max iterations: %i\n", &max_iter);
 
+
   /* Calculate dimensions of local subgrid */
   dim[X_DIR] = gridsize[X_DIR] + 2;
   dim[Y_DIR] = gridsize[Y_DIR] + 2;
 
+  printf("%f", precision_goal);
   /* allocate memory */
   if ((phi = malloc(dim[X_DIR] * sizeof(*phi))) == NULL)
     Debug("Setup_Subgrid : malloc(phi) failed", 1);
@@ -142,7 +144,7 @@ void Setup_Grid()
       y = source_y * gridsize[Y_DIR];
       x += 1;
       y += 1;
-      phi[x][y] = source_val;
+      phi[x][y] = source_val / ((dim[X_DIR] -1)*(dim[X_DIR] - 1));
       source[x][y] = 1;
     }
   }
@@ -164,8 +166,8 @@ double Do_Step(int parity)
       {
 	old_phi = phi[x][y];
 	phi[x][y] = (phi[x + 1][y] + phi[x - 1][y] +
-		     phi[x][y + 1] + phi[x][y - 1]) * 0.25;
-
+		     phi[x][y + 1] + phi[x][y - 1]) * 0.25 / ((gridsize[X_DIR]-1) * gridsize[X_DIR]-1);
+  phi[x][y] / ((gridsize[X_DIR]-1) * gridsize[X_DIR]-1);
 	if (max_err < fabs(old_phi - phi[x][y]))
 	  max_err = fabs(old_phi - phi[x][y]);
       }
@@ -212,7 +214,7 @@ void Write_Grid()
 
   for (x = 1; x < dim[X_DIR] - 1; x++)
     for (y = 1; y < dim[Y_DIR] - 1; y++)
-      fprintf(f, "%i %i %f\n", x, y, phi[x][y]);
+      fprintf(f, "%i %i %.17g \n", x, y, phi[x][y]);
 
   fclose(f);
 }
