@@ -45,7 +45,7 @@ MPI_Status status;
 clock_t ticks;			/* number of systemticks */
 double wtime;			/* wallclock time */
 int timer_on = 0;		/* is timer running? */
-double time_computations = 0, time_neighbor_exchange = 0, time_global = 0, time_total = 0;
+double time_computations = 0, time_neighbor_exchange = 0, time_global = 0, time_total = 0, time_idle = 0;
 double time_start;
 
 /* local process related variables */
@@ -465,8 +465,8 @@ void Solve()
   Exchange_Borders(phi);
   time_neighbor_exchange += MPI_Wtime() - time_start;
 
-  /* r = b-Ax */
   time_start = MPI_Wtime();
+  /* r = b-Ax */
   for (i = 0; i < N_vert; i++)
   {
     r[i] = 0.0;
@@ -475,17 +475,19 @@ void Solve()
   }
 
   r1 = 2 * precision_goal;
-  time_computations += MPI_Wtime() - time_start;
   while ((count < max_iter) && (r1 > precision_goal))
   {
     /* r1 = r' * r */
-    time_start = MPI_Wtime();
     sub = 0.0;
     for (i = 0; i < N_vert; i++)
       if (!(vert[i].type & TYPE_GHOST))
 	      sub += r[i] * r[i];
     time_computations += MPI_Wtime() - time_start;
     
+    time_start = MPI_Wtime();
+    MPI_Barrier(grid_comm);
+    time_idle += MPI_Wtime() - time_start;
+
     time_start = MPI_Wtime();
     MPI_Allreduce(&sub, &r1, 1, MPI_DOUBLE, MPI_SUM, grid_comm);
     time_global += MPI_Wtime() - time_start;
@@ -495,7 +497,7 @@ void Solve()
     {
       /* p = r */
       for (i = 0; i < N_vert; i++)
-	p[i] = r[i];
+	      p[i] = r[i];
       }
     else
     {
@@ -528,6 +530,10 @@ void Solve()
     time_computations += MPI_Wtime() - time_start;
     
     time_start = MPI_Wtime();
+    MPI_Barrier(grid_comm);
+    time_idle += MPI_Wtime() - time_start;
+
+    time_start = MPI_Wtime();
     MPI_Allreduce(&sub, &a, 1, MPI_DOUBLE, MPI_SUM, grid_comm);
     time_global += MPI_Wtime() - time_start;
 
@@ -543,10 +549,11 @@ void Solve()
       r[i] -= a * q[i];
 
     r2 = r1;
-
     count++;
     time_computations += MPI_Wtime() - time_start;
+    time_start = MPI_Wtime();
   }
+  time_computations += MPI_Wtime() - time_start;
   time_total = MPI_Wtime() - time_total;
   free(q);
   free(p);
@@ -622,7 +629,7 @@ int main(int argc, char **argv)
   printf("(%i) finalise time: %14.6f\n", proc_rank, MPI_Wtime() - time_start);
   MPI_Finalize();
 
-  printf("(%i) time computation: %14.6f, time exchanging info: %14.6f, time global: %14.6f, time idle: %14.6f, time total: %14.6f \n", proc_rank,  time_computations, time_neighbor_exchange, time_global,
-     time_total - time_computations - time_neighbor_exchange - time_global, time_total);
+  printf("(%i) time computation: %12.6f, time exchanging info: %12.6f, time global: %12.6f, time idle: %12.6f, time total: %12.6f, difference: %12.6f\n", proc_rank,  time_computations, time_neighbor_exchange, time_global,
+     time_idle, time_total, time_total - time_computations - time_neighbor_exchange - time_global - time_idle);
   return 0;
 }

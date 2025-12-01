@@ -1,0 +1,38 @@
+100 100 1 4:
+normal
+(3) setup time:       0.019034
+(2) setup time:       0.019212
+(0) setup time:       0.019155
+(1) setup time:       0.019415
+Number of iterations : 141
+(0) Elapsed Wtime:       0.058659 s ( 44.1% CPU)
+(0) finalise time:       0.020518
+(3) Elapsed Wtime:       0.061257 s ( 63.7% CPU)
+(3) finalise time:       0.023113
+(2) Elapsed Wtime:       0.061436 s ( 63.6% CPU)
+(2) finalise time:       0.023285
+(1) Elapsed Wtime:       0.072804 s ( 53.6% CPU)
+(1) finalise time:       0.034645
+(0) time computation:     0.015999, time exchanging info:     0.000737, time global:     0.000607, time idle:     0.001679, time total:     0.019060, difference:     0.000039
+(1) time computation:     0.016688, time exchanging info:     0.000791, time global:     0.000654, time idle:     0.000675, time total:     0.018863, difference:     0.000055
+(3) time computation:     0.015383, time exchanging info:     0.001837, time global:     0.000495, time idle:     0.001487, time total:     0.019240, difference:     0.000037
+(2) time computation:     0.016227, time exchanging info:     0.001551, time global:     0.000494, time idle:     0.000740, time total:     0.019073, difference:     0.000061
+
+adapt
+(0) setup time:       0.006242
+(3) setup time:       0.006181
+(2) setup time:       0.006322
+(1) setup time:       0.006585
+Number of iterations : 146
+(3) Elapsed Wtime:       0.028144 s ( 96.2% CPU)
+(3) finalise time:       0.002006
+(2) Elapsed Wtime:       0.028401 s ( 95.5% CPU)
+(2) finalise time:       0.002267
+(1) Elapsed Wtime:       0.028738 s ( 95.0% CPU)
+(1) finalise time:       0.002589
+(0) Elapsed Wtime:       0.028819 s ( 93.4% CPU)
+(0) finalise time:       0.002677
+(3) time computation:     0.016042, time exchanging info:     0.001917, time global:     0.000505, time idle:     0.001502, time total:     0.020007, difference:     0.000041
+(2) time computation:     0.016759, time exchanging info:     0.001626, time global:     0.000492, time idle:     0.000919, time total:     0.019862, difference:     0.000066
+(1) time computation:     0.017349, time exchanging info:     0.000792, time global:     0.000687, time idle:     0.000723, time total:     0.019611, difference:     0.000061
+(0) time computation:     0.016771, time exchanging info:     0.000853, time global:     0.000610, time idle:     0.001675, time total:     0.019948, difference:     0.000040

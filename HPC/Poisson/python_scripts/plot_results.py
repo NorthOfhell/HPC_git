@@ -1,15 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import os
 
 # ---------- USER PARAMETERS ----------
 filenames = ["output1.dat", "output2.dat", "output3.dat", "output0.dat"]
 
-filenames = ["output400.dat"]
+filenames = ["output300.dat"]
 
 # order: [top-left, top-right, bottom-left, bottom-right]
 
-full_nx = full_ny = 400
+full_nx = full_ny = 300
 tiles_x = tiles_y = 1   # 2x2 tile layout
 dtype_save = np.float32  # save as float32 to reduce memory on disk
 # -------------------------------------
@@ -149,10 +150,23 @@ block = full_nx // 800
 if block < 1:
     block = 1
 
-grid_coarse = 4 * block_mean(big, block=block)
+grid_coarse = -block_mean(big, block=block)
 plt.figure(figsize=(6,6))
 plt.imshow(grid_coarse, origin="lower", interpolation="nearest")
 plt.title(f"Downsampled view (block={block})")
 plt.colorbar(label="value")
-plt.savefig(f"grid_{full_nx}.png")
+plt.savefig(f"grid_plot//grid_{full_nx}.png")
+plt.show()
+
+X, Y = np.meshgrid(np.arange(full_nx), np.arange(full_ny))
+
+# Plot
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(X, Y, -big, cmap='viridis')
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Value')
+
 plt.show()

@@ -21,6 +21,7 @@ enum
 int gridsize[2];
 double precision_goal;		/* precision_goal of solution */
 int max_iter;			/* maximum number of iterations alowed */
+double grid_spacing;
 
 /* benchmark related variables */
 clock_t ticks;			/* number of systemticks */
@@ -28,7 +29,7 @@ int timer_on = 0;		/* is timer running? */
 
 /* local grid related variables */
 double **phi;			/* grid */
-int **source;			/* TRUE if subgrid element is a source */
+double **source;			/* TRUE if subgrid element is a source */
 int dim[2];			/* grid dimensions */
 
 void Setup_Grid();
@@ -110,7 +111,9 @@ void Setup_Grid()
   dim[X_DIR] = gridsize[X_DIR] + 2;
   dim[Y_DIR] = gridsize[Y_DIR] + 2;
 
-  printf("%f", precision_goal);
+  grid_spacing = 1.0 / (gridsize[X_DIR] - 1);
+  printf("%i, %.12f, %.12f\n",gridsize[X_DIR], grid_spacing, precision_goal);
+
   /* allocate memory */
   if ((phi = malloc(dim[X_DIR] * sizeof(*phi))) == NULL)
     Debug("Setup_Subgrid : malloc(phi) failed", 1);
@@ -144,8 +147,7 @@ void Setup_Grid()
       y = source_y * gridsize[Y_DIR];
       x += 1;
       y += 1;
-      phi[x][y] = source_val / ((dim[X_DIR] -1)*(dim[X_DIR] - 1));
-      source[x][y] = 1;
+      source[x][y] = source_val;
     }
   }
   while (s==3);
@@ -162,12 +164,12 @@ double Do_Step(int parity)
   /* calculate interior of grid */
   for (x = 1; x < dim[X_DIR] - 1; x++)
     for (y = 1; y < dim[Y_DIR] - 1; y++)
-      if ((x + y) % 2 == parity && source[x][y] != 1)
+      if ((x + y) % 2 == parity)
       {
 	old_phi = phi[x][y];
 	phi[x][y] = (phi[x + 1][y] + phi[x - 1][y] +
-		     phi[x][y + 1] + phi[x][y - 1]) * 0.25 / ((gridsize[X_DIR]-1) * gridsize[X_DIR]-1);
-  phi[x][y] / ((gridsize[X_DIR]-1) * gridsize[X_DIR]-1);
+		     phi[x][y + 1] + phi[x][y - 1] - source[x][y]) * 0.25;
+
 	if (max_err < fabs(old_phi - phi[x][y]))
 	  max_err = fabs(old_phi - phi[x][y]);
       }
@@ -196,6 +198,7 @@ void Solve()
     delta2 = Do_Step(1);
     
     delta = max(delta1, delta2);
+    //printf("max error %.12f\n", delta);
     count++;
   }
 
@@ -207,7 +210,9 @@ void Write_Grid()
   int x, y;
   FILE *f;
 
-  if ((f = fopen("output.dat", "w")) == NULL)
+  char filename[40];
+  sprintf(filename, "output%i.dat", gridsize[X_DIR]);
+  if ((f = fopen(filename, "w")) == NULL)
     Debug("Write_Grid : fopen failed", 1);
 
   Debug("Write_Grid", 0);
