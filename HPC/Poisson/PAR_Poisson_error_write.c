@@ -273,8 +273,8 @@ void Write_Grid()
   int x, y;
   FILE *f;
 
-  char filename[40];
-  sprintf(filename, "output%i.dat", proc_rank);
+  char filename[100];
+  sprintf(filename, "output//output%i.dat", proc_rank);
   if ((f = fopen(filename, "w")) == NULL)
   Debug("Write_Grid fopen failed", 1);
 
@@ -284,7 +284,6 @@ void Write_Grid()
 
   fclose(f);
 }
-
 
 void Clean_Up()
 {

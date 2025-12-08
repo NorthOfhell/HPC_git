@@ -29,7 +29,7 @@ MPI_Datatype border_type[2]; /*border communication type*/
 MPI_Status status;
 
 double wtime;     /* wallclock time */
-
+double solve_time;
 /* benchmark related variables */
 clock_t ticks;			/* number of systemticks */
 int timer_on = 0;		/* is timer running? */
@@ -230,6 +230,7 @@ double Do_Step(int parity)
 
 void Solve()
 {
+  solve_time = MPI_Wtime();
   int count = 0;
   double delta;
   double delta1, delta2;
@@ -256,16 +257,20 @@ void Solve()
 
   count++;
   }
-  printf("(%i): Number of iterations : %i\n",proc_rank, count); 
-
+  solve_time = MPI_Wtime();
+  MPI_Allreduce(MPI_IN_PLACE, &solve_time, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
+  if (proc_rank == 0)
+  {
+    printf("(%i): Number of iterations : %i, time solving: %f \n", proc_rank, count, solve_time);
+  }
 }
 void Write_Grid()
 {
   int x, y;
   FILE *f;
 
-  char filename[40];
-  sprintf(filename, "output%i.dat", proc_rank);
+  char filename[100];
+  sprintf(filename, "output//output%i.dat", proc_rank);
   if ((f = fopen(filename, "w")) == NULL)
   Debug("Write_Grid fopen failed", 1);
 

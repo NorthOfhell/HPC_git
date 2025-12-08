@@ -273,8 +273,8 @@ void Write_Grid()
   int x, y;
   FILE *f;
 
-  char filename[40];
-  sprintf(filename, "output%i.dat", proc_rank);
+  char filename[100];
+  sprintf(filename, "output//output%i.dat", proc_rank);
   if ((f = fopen(filename, "w")) == NULL)
   Debug("Write_Grid fopen failed", 1);
 
@@ -377,7 +377,7 @@ int main(int argc, char **argv)
   Setup_MPI_Datatypes();
   Solve();
 
- //Write_Grid();
+ Write_Grid();
 
   print_timer();
 

@@ -27,8 +27,10 @@ int P_grid[2]; /* process grid dimensions*/
 MPI_Comm grid_comm; /* grid COMMUNICATOR */
 MPI_Datatype border_type[2]; /*border communication type*/
 MPI_Status status;
+int sweeps_per_exchange;
 
 double wtime;     /* wallclock time */
+double solve_time;
 
 /* benchmark related variables */
 clock_t ticks;			/* number of systemticks */
@@ -173,31 +175,31 @@ void Setup_Grid()
   /* put sources in field */
   do
   {
-  if (proc_rank == 0) /* only process 0 may scan next line of input */
-  s = fscanf(f, "source: %lf %lf %lf\n", &source_x, &source_y, &source_val);
+    if (proc_rank == 0) /* only process 0 may scan next line of input */
+    s = fscanf(f, "source: %lf %lf %lf\n", &source_x, &source_y, &source_val);
 
-  MPI_Bcast(&s, 1, MPI_INT, 0, grid_comm ); /* The return value of this scan is broadcast even though
-  it is no input data */
+    MPI_Bcast(&s, 1, MPI_INT, 0, grid_comm ); /* The return value of this scan is broadcast even though
+    it is no input data */
 
-  if (s == 3)
-  {
-  MPI_Bcast(&source_x, 1, MPI_DOUBLE, 0, grid_comm); /* broadcast source_x */
-  MPI_Bcast(&source_y, 1, MPI_DOUBLE, 0, grid_comm); /* broadcast source_y */
-  MPI_Bcast(&source_val, 1, MPI_DOUBLE, 0, grid_comm); /* broadcast source_val*/
-  x = gridsize[X_DIR] * source_x;
-  y = gridsize[Y_DIR] * source_y;
-  x += 1;
-  y += 1;
+    if (s == 3)
+    {
+    MPI_Bcast(&source_x, 1, MPI_DOUBLE, 0, grid_comm); /* broadcast source_x */
+    MPI_Bcast(&source_y, 1, MPI_DOUBLE, 0, grid_comm); /* broadcast source_y */
+    MPI_Bcast(&source_val, 1, MPI_DOUBLE, 0, grid_comm); /* broadcast source_val*/
+    x = gridsize[X_DIR] * source_x;
+    y = gridsize[Y_DIR] * source_y;
+    x += 1;
+    y += 1;
 
-  x = x - offset[X_DIR];
-  y = y - offset[Y_DIR];
-  if ( x>0 && x < dim[X_DIR] -1 && y>0 && y < dim[Y_DIR] -1)
-  { /* indices in domain of this process */
-  phi[x][y] = source_val;
-  source[x][y] = 1;
-}
+    x = x - offset[X_DIR];
+    y = y - offset[Y_DIR];
+    if ( x>0 && x < dim[X_DIR] -1 && y>0 && y < dim[Y_DIR] -1)
+      { /* indices in domain of this process */
+      phi[x][y] = source_val;
+      source[x][y] = 1;
+      }
 
-  }
+    }
   }
   while (s == 3);
 
@@ -219,7 +221,12 @@ double Do_Step(int parity)
 	old_phi = phi[x][y];
 	change_const = (phi[x + 1][y] + phi[x - 1][y] +
 		     phi[x][y + 1] + phi[x][y - 1]) * 0.25;
+  if(x == 100 && y == 1 && proc_rank == 1)
+    printf("(%i) location %i %i, value start %f, change constant = %f, x+1 = %f, x-1 = %f, y+1 = %f, y-1 = %f",proc_rank, x, y, phi[x][y], change_const, phi[x + 1][y], phi[x - 1][y], phi[x][y+1], phi[x][y-1]);
+
   phi[x][y] = (1-relaxation) * phi[x][y] + relaxation * change_const;
+  if(x == 100 && y == 1 && proc_rank == 1)
+  printf(" result = %f \n", phi[x][y]);
 
 	if (max_err < fabs(old_phi - phi[x][y]))
 	  max_err = fabs(old_phi - phi[x][y]);
@@ -230,6 +237,8 @@ double Do_Step(int parity)
 
 void Solve()
 {
+  MPI_Barrier(grid_comm);
+  solve_time = MPI_Wtime();
   int count = 0;
   double delta;
   double delta1, delta2;
@@ -242,11 +251,11 @@ void Solve()
 
   FILE *f;
 
-  int sweeps_per_exchange = 2;
   int count_sweeps = 0;
   while (global_delta > precision_goal && count < max_iter)
   {
     delta = 0.0;
+
 
       Debug("Do_Step red", 0);
       delta1 = Do_Step(phase);
@@ -254,18 +263,24 @@ void Solve()
 
       if (count_sweeps == sweeps_per_exchange)
       {
+        MPI_Barrier(grid_comm);
         count_sweeps = 0;
         Exchange_Borders();
+        printf("(%i) exchanged borders\n", proc_rank);
+        fflush(stdout);
       }
-
       Debug("Do_Step black", 0);
       delta2 = Do_Step(!phase);
       count_sweeps++;
 
       if (count_sweeps == sweeps_per_exchange)
       {
+        MPI_Barrier(grid_comm);
         count_sweeps = 0;
         Exchange_Borders();
+        printf("(%i) exchanged borders\n", proc_rank);
+        fflush(stdout);
+
       }
 
       delta = max(delta1, delta2);
@@ -273,8 +288,13 @@ void Solve()
 
       MPI_Allreduce(&delta, &global_delta, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
   }
+  solve_time = MPI_Wtime() - solve_time;
+  MPI_Allreduce(MPI_IN_PLACE, &solve_time, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
+  if (proc_rank == 0)
+  {
+    printf("(%i): Number of iterations : %i, time solving: %f \n", proc_rank, count, solve_time);
+  }
 
-printf("(%i): Number of iterations : %i\n", proc_rank, count);
 }
 
 void Write_Grid()
@@ -282,8 +302,8 @@ void Write_Grid()
   int x, y;
   FILE *f;
 
-  char filename[40];
-  sprintf(filename, "output%i.dat", proc_rank);
+  char filename[100];
+  sprintf(filename, "output//output%i.dat", proc_rank);
   if ((f = fopen(filename, "w")) == NULL)
   Debug("Write_Grid fopen failed", 1);
 
@@ -314,10 +334,11 @@ Debug("My_MPI_Init", 0);
 /* Retrieve the number of processes */
 MPI_Comm_size(MPI_COMM_WORLD, &P); /* find out how many processes there are */
 /* Calculate the number of processes per column and per row for the grid */
-if (argc > 2)
+if (argc > 3)
 {
 P_grid[X_DIR] = atoi(argv[1]);
 P_grid[Y_DIR] = atoi(argv[2]);
+sweeps_per_exchange = atoi(argv[3]);
 if (P_grid[X_DIR] * P_grid[Y_DIR] != P)
 Debug("ERROR Proces grid dimensions do not match with P ", 1);
 }
@@ -382,12 +403,11 @@ int main(int argc, char **argv)
   Setup_Proc_Grid(argc, argv);
   start_timer();
   Setup_Grid();
-  //printf("%i, %i, %i, %i\n", dim[X_DIR], offset[X_DIR], dim[Y_DIR], offset[Y_DIR]);
   printf("%f \n", relaxation);
   Setup_MPI_Datatypes();
   Solve();
 
-  Write_Grid();
+  //Write_Grid();
 
   print_timer();
 
