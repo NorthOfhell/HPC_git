@@ -236,7 +236,7 @@ int main(int argc, char **argv)
 
   Solve();
 
-  Write_Grid();
+  //Write_Grid();
 
   print_timer();
 

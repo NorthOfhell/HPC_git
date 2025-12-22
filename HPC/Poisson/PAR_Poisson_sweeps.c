@@ -266,7 +266,6 @@ void Solve()
         MPI_Barrier(grid_comm);
         count_sweeps = 0;
         Exchange_Borders();
-        printf("(%i) exchanged borders\n", proc_rank);
         fflush(stdout);
       }
       Debug("Do_Step black", 0);
@@ -278,7 +277,6 @@ void Solve()
         MPI_Barrier(grid_comm);
         count_sweeps = 0;
         Exchange_Borders();
-        printf("(%i) exchanged borders\n", proc_rank);
         fflush(stdout);
 
       }

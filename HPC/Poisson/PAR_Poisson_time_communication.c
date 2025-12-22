@@ -34,6 +34,7 @@ double wtime;     /* wallclock time */
 clock_t ticks;			/* number of systemticks */
 int timer_on = 0;		/* is timer running? */
 float communication_time = 0;
+int number_of_elements = 0; 
 
 /* local grid related variables */
 double **phi;			/* grid */
@@ -145,6 +146,11 @@ void Setup_Grid()
   dim[Y_DIR] = upper_offset[Y_DIR] - offset[Y_DIR];
   dim[X_DIR] = upper_offset[X_DIR]- offset[X_DIR];
   /* Add space for rows/columns of neighboring grid */
+
+  if (proc_rank == 0)
+    number_of_elements = dim[Y_DIR] + dim[X_DIR];
+    printf("%i, %i\n", dim[Y_DIR], dim[X_DIR]);
+
   dim[Y_DIR] += 2;
   dim[X_DIR] += 2;
 
@@ -316,9 +322,10 @@ MPI_Comm_rank(grid_comm, &proc_rank); /* Rank of process in new communicator */
 MPI_Cart_coords(grid_comm, proc_rank, 2, proc_coord); /* Coordinates of process in new communicator*/
 printf("(%i) (x,y)=(%i,%i)\n", proc_rank, proc_coord[X_DIR], proc_coord[Y_DIR]);
 /* calculate ranks of neighboring processes */
+/* rank of processes proc_left and proc_right */
 MPI_Cart_shift(grid_comm, Y_DIR, 1, &proc_left, &proc_right);
 /* rank of processes proc_top and proc_bottom */
-MPI_Cart_shift(grid_comm, X_DIR, 1, &proc_top, &proc_bottom); /* rank of processes proc_left and proc_right */
+MPI_Cart_shift(grid_comm, X_DIR, 1, &proc_top, &proc_bottom); 
 if (DEBUG)
 printf("(%i) top %i, right %i, bottom %i, left %i\n", proc_rank, proc_top,
 proc_right, proc_bottom, proc_left);
@@ -372,7 +379,11 @@ int main(int argc, char **argv)
   Solve();
 
   Write_Grid();
-
+  if (proc_rank == 0)
+  {
+     printf("elements %i, time %f \n",number_of_elements, communication_time);
+  }
+ 
   print_timer();
 
   Clean_Up();
