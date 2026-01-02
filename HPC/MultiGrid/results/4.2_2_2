@@ -1,0 +1,21 @@
+100 141:
+(0) time computation:     0.015298, time exchanging info:     0.001292, time global:     0.000470, time idle:     0.004092, time total:     0.018824  
+(0) time computation:     0.016302, time exchanging info:     0.001058, time global:     0.000460, time idle:     0.004786, time total:     0.019925 
+(0) time computation:     0.014736, time exchanging info:     0.002098, time global:     0.000367, time idle:     0.003195, time total:     0.018288   
+(0) time computation:     0.012156, time exchanging info:     0.001023, time global:     0.000420, time idle:     0.001404, time total:     0.014370   
+(0) time computation:     0.020807, time exchanging info:     0.001162, time global:     0.000442, time idle:     0.007843, time total:     0.022943   
+(0) time computation:     0.015761, time exchanging info:     0.000978, time global:     0.000396, time idle:     0.004228, time total:     0.018033   
+200 274:
+(0) time computation:     0.149743, time exchanging info:     0.006473, time global:     0.001763, time idle:     0.045731, time total:     0.168156   
+(0) time computation:     0.167965, time exchanging info:     0.004562, time global:     0.001730, time idle:     0.052513, time total:     0.182733   
+(0) time computation:     0.160266, time exchanging info:     0.005625, time global:     0.001902, time idle:     0.031935, time total:     0.188315
+(0) time computation:     0.153231, time exchanging info:     0.005114, time global:     0.002846, time idle:     0.042448, time total:     0.180934   
+(0) time computation:     0.149751, time exchanging info:     0.005985, time global:     0.002034, time idle:     0.024565, time total:     0.176762   
+(0) time computation:     0.124813, time exchanging info:     0.002747, time global:     0.001366, time idle:     0.009303, time total:     0.135170   
+400 529:
+(0) time computation:     1.658715, time exchanging info:     0.029401, time global:     0.021475, time idle:     0.226015, time total:     1.918093   
+(0) time computation:     1.377326, time exchanging info:     0.020284, time global:     0.007923, time idle:     0.171911, time total:     1.538348
+(0) time computation:     1.473153, time exchanging info:     0.022043, time global:     0.010297, time idle:     0.180599, time total:     1.665619   
+(0) time computation:     1.365121, time exchanging info:     0.021234, time global:     0.011192, time idle:     0.175608, time total:     1.555638   
+(0) time computation:     1.370201, time exchanging info:     0.027406, time global:     0.007638, time idle:     0.166310, time total:     1.535378   
+(0) time computation:     1.393328, time exchanging info:     0.021298, time global:     0.009953, time idle:     0.154601, time total:     1.549784   

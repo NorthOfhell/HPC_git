@@ -441,7 +441,7 @@ void Exchange_Borders(double *vect)
 void Solve()
 {
   time_total =  MPI_Wtime();
-  time_start = MPI_Wtime();
+  
   int count = 0;
   int i, j;
   double *r, *p, *q;
@@ -459,8 +459,6 @@ void Solve()
       Debug("Solve : malloc(q) failed", 1);
 
   /* Implementation of the CG algorithm : */
-  time_computations += MPI_Wtime() - time_start;
-
   time_start = MPI_Wtime();
   Exchange_Borders(phi);
   time_neighbor_exchange += MPI_Wtime() - time_start;
@@ -559,8 +557,8 @@ void Solve()
   free(p);
   free(r);
 
-  if (proc_rank == 0)
-    printf("Number of iterations : %i\n", count);
+  // if (proc_rank == 0)
+  //   printf("Number of iterations : %i\n", count);
 }
 
 void Write_Grid()
@@ -614,7 +612,7 @@ int main(int argc, char **argv)
   Setup_Proc_Grid();
 
   Setup_Grid();
-  printf("(%i) setup time: %14.6f\n", proc_rank, MPI_Wtime() - time_start);
+  //printf("(%i) setup time: %14.6f\n", proc_rank, MPI_Wtime() - time_start);
 
   Solve();
 
@@ -623,13 +621,24 @@ int main(int argc, char **argv)
 
   Clean_Up();
 
-  print_timer();
+  //print_timer();
   
   Debug("MPI_Finalize", 0);
-  printf("(%i) finalise time: %14.6f\n", proc_rank, MPI_Wtime() - time_start);
-  MPI_Finalize();
+  //printf("(%i) finalise time: %14.6f\n", proc_rank, MPI_Wtime() - time_start);
+  
+  MPI_Allreduce(MPI_IN_PLACE, &time_computations, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &time_neighbor_exchange, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &time_global, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &time_idle, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &time_total, 1, MPI_DOUBLE, MPI_MAX, grid_comm);
 
-  printf("(%i) time computation: %12.6f, time exchanging info: %12.6f, time global: %12.6f, time idle: %12.6f, time total: %12.6f, difference: %12.6f\n", proc_rank,  time_computations, time_neighbor_exchange, time_global,
-     time_idle, time_total, time_total - time_computations - time_neighbor_exchange - time_global - time_idle);
+  if (proc_rank == 0)
+  {
+      printf("(%i) time computation: %12.6f, time exchanging info: %12.6f, time global: %12.6f, time idle: %12.6f, time total: %12.6f\n", proc_rank,  time_computations, time_neighbor_exchange, time_global,
+     time_idle, time_total);
+  }
+
+
+  MPI_Finalize();
   return 0;
 }

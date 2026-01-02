@@ -33,9 +33,11 @@ double wtime;     /* wallclock time */
 /* benchmark related variables */
 clock_t ticks;			/* number of systemticks */
 int timer_on = 0;		/* is timer running? */
-float communication_time = 0;
+double communication_time = 0;
 int number_of_elements = 0; 
 
+double time_intermediate = 0;
+double comm_directional[4] = {0};
 /* local grid related variables */
 double **phi;			/* grid */
 int **source;			/* TRUE if subgrid element is a source */
@@ -48,6 +50,8 @@ void Setup_Grid();
 double Do_Step(int parity);
 void Solve();
 void Write_Grid();
+void Write_communication_time(int counter);
+
 void Clean_Up();
 void Debug(char *mesg, int terminate);
 void start_timer();
@@ -93,11 +97,11 @@ void print_timer()
 	if (timer_on)
 	{
 	stop_timer();
-	printf("(%i) Elapsed Wtime %14.6f s (%5.1f%% CPU) Commucation Time: %14.6f\n", proc_rank, wtime, 100.0 * ticks * (1.0 / CLOCKS_PER_SEC) / wtime, communication_time); 
+	printf("(%i) Elapsed Wtime %14.6f s (%5.1f%% CPU) communication Time: %14.6lf\n", proc_rank, wtime, 100.0 * ticks * (1.0 / CLOCKS_PER_SEC) / wtime, communication_time); 
 	resume_timer();
 	}
 	else
-	printf("(%i) Elapsed Wtime %14.6f s (%5.1f%% CPU) Commucation Time: %14.6f\n", proc_rank, wtime, 100.0 * ticks * (1.0 / CLOCKS_PER_SEC) / wtime, communication_time);
+	printf("(%i) Elapsed Wtime %14.6f s (%5.1f%% CPU) communication Time: %14.6lf\n", proc_rank, wtime, 100.0 * ticks * (1.0 / CLOCKS_PER_SEC) / wtime, communication_time);
 
 }
 
@@ -146,10 +150,6 @@ void Setup_Grid()
   dim[Y_DIR] = upper_offset[Y_DIR] - offset[Y_DIR];
   dim[X_DIR] = upper_offset[X_DIR]- offset[X_DIR];
   /* Add space for rows/columns of neighboring grid */
-
-  if (proc_rank == 0)
-    number_of_elements = dim[Y_DIR] + dim[X_DIR];
-    printf("%i, %i\n", dim[Y_DIR], dim[X_DIR]);
 
   dim[Y_DIR] += 2;
   dim[X_DIR] += 2;
@@ -264,6 +264,15 @@ void Solve()
   count++;
   }
   printf("(%i): Number of iterations : %i\n",proc_rank, count); 
+  if (proc_rank == 0)
+  {
+    Write_communication_time(count);
+    printf("%lf, %lf, %lf, %lf\n",comm_directional[0], comm_directional[1], comm_directional[2], comm_directional[3]);
+  }
+  else
+  {
+    printf("%lf, %lf, %lf, %lf\n",comm_directional[0], comm_directional[1], comm_directional[2], comm_directional[3]);
+  }
 
 }
 void Write_Grid()
@@ -279,10 +288,27 @@ void Write_Grid()
   for (x = 1; x < dim[X_DIR] - 1; x++)
     for (y = 1; y < dim[Y_DIR] - 1; y++)
       fprintf(f, "%i %i %f\n", x + offset[X_DIR] , y + offset[Y_DIR], phi[x][y]);
+      
+  fclose(f);
+}
+void Write_communication_time(int counter)
+{
+  FILE *f;
+
+
+  char filename[100];
+  sprintf(filename, "data//comm_%i_%i_%.4f.dat", P_grid[X_DIR] ,P_grid[Y_DIR],  relaxation);
+  if ((f = fopen(filename, "a")) == NULL)
+    Debug("Write_communication_time fopen failed", 1);
+
+  fprintf(f, "%i %i %i %i %.6lf %.6lf %.6lf %.6lf %.6lf \n",
+  P_grid[X_DIR] , P_grid[Y_DIR], gridsize[X_DIR], counter,
+  communication_time, comm_directional[0], comm_directional[1], comm_directional[2] ,comm_directional[3]);
+
+  
 
   fclose(f);
 }
-
 
 void Clean_Up()
 {
@@ -346,24 +372,42 @@ MPI_Type_commit(&border_type[X_DIR]);
 
 void Exchange_Borders()
 {
+MPI_Barrier(grid_comm);
+
+time_intermediate = MPI_Wtime();
 float start_time = MPI_Wtime();
+
 Debug("Exchange_Borders", 0);
 MPI_Sendrecv(&phi[1][1], 1, border_type[X_DIR], proc_top, 0,
 &phi[dim[X_DIR]-1][1], 1, border_type[X_DIR], proc_bottom, 0,
 grid_comm, &status); /* all traffic in direction "top" */
 
+comm_directional[0] += MPI_Wtime() - time_intermediate;
+time_intermediate = MPI_Wtime();
+
+
 MPI_Sendrecv(&phi[dim[X_DIR]-2][1], 1, border_type[X_DIR], proc_bottom, 0,
 &phi[0][1], 1, border_type[X_DIR], proc_top, 0,
 grid_comm, &status); /* all traffic in direction "bottom" */
+
+comm_directional[1] += MPI_Wtime() - time_intermediate;
+time_intermediate = MPI_Wtime();
 
 MPI_Sendrecv(&phi[1][1], 1, border_type[Y_DIR], proc_left, 0,
 &phi[1][dim[Y_DIR]-1], 1, border_type[Y_DIR], proc_right, 0,
 grid_comm, &status); /* all traffic in direction "left" */
 
+comm_directional[2] += MPI_Wtime() - time_intermediate;
+ time_intermediate = MPI_Wtime();
+
 MPI_Sendrecv(&phi[1][dim[Y_DIR]-2], 1, border_type[Y_DIR], proc_right, 0,
 &phi[1][0], 1, border_type[Y_DIR], proc_left, 0,
 grid_comm, &status); /* all traffic in the direction "right"
 */
+
+ comm_directional[3] += MPI_Wtime() - time_intermediate;
+ time_intermediate = MPI_Wtime();
+
 communication_time += MPI_Wtime() - start_time;
 }
 
@@ -378,11 +422,7 @@ int main(int argc, char **argv)
   Setup_MPI_Datatypes();
   Solve();
 
-  Write_Grid();
-  if (proc_rank == 0)
-  {
-     printf("elements %i, time %f \n",number_of_elements, communication_time);
-  }
+  //Write_Grid();
  
   print_timer();
 

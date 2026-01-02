@@ -1,0 +1,61 @@
+25:
+(0) time computation:     0.000346, time exchanging info:     0.000654, time global:     0.000274, time idle:     0.000553, time total:     0.001539
+(0) time computation:     0.000339, time exchanging info:     0.000654, time global:     0.000282, time idle:     0.000571, time total:     0.001460
+(0) time computation:     0.000323, time exchanging info:     0.000646, time global:     0.000276, time idle:     0.000579, time total:     0.001542
+(0) time computation:     0.000355, time exchanging info:     0.000692, time global:     0.000313, time idle:     0.000552, time total:     0.001483
+(0) time computation:     0.000324, time exchanging info:     0.000668, time global:     0.000301, time idle:     0.000543, time total:     0.001460
+(0) time computation:     0.000346, time exchanging info:     0.000772, time global:     0.000289, time idle:     0.000595, time total:     0.001626
+(0) time computation:     0.000342, time exchanging info:     0.000725, time global:     0.000301, time idle:     0.000656, time total:     0.001587
+(0) time computation:     0.000343, time exchanging info:     0.000688, time global:     0.000282, time idle:     0.000580, time total:     0.001515
+(0) time computation:     0.000337, time exchanging info:     0.000772, time global:     0.000290, time idle:     0.000625, time total:     0.001563
+(0) time computation:     0.000327, time exchanging info:     0.000698, time global:     0.000297, time idle:     0.000631, time total:     0.001523
+
+38:
+(0) time computation:     0.001042, time exchanging info:     0.000968, time global:     0.000349, time idle:     0.000742, time total:     0.002575
+(0) time computation:     0.001032, time exchanging info:     0.001008, time global:     0.000344, time idle:     0.000738, time total:     0.002634
+(0) time computation:     0.001035, time exchanging info:     0.000937, time global:     0.000340, time idle:     0.000736, time total:     0.002506
+(0) time computation:     0.001054, time exchanging info:     0.000992, time global:     0.000339, time idle:     0.000776, time total:     0.002584
+(0) time computation:     0.001033, time exchanging info:     0.000989, time global:     0.000318, time idle:     0.000754, time total:     0.002515
+(0) time computation:     0.001024, time exchanging info:     0.000899, time global:     0.000331, time idle:     0.000750, time total:     0.002517
+(0) time computation:     0.001043, time exchanging info:     0.001048, time global:     0.000318, time idle:     0.000727, time total:     0.002571
+(0) time computation:     0.001046, time exchanging info:     0.000958, time global:     0.000348, time idle:     0.000763, time total:     0.002571
+(0) time computation:     0.001058, time exchanging info:     0.001015, time global:     0.000321, time idle:     0.000693, time total:     0.002522
+(0) time computation:     0.001032, time exchanging info:     0.000970, time global:     0.000327, time idle:     0.000753, time total:     0.002554
+
+41:
+(0) time computation:     0.001249, time exchanging info:     0.000984, time global:     0.000350, time idle:     0.000834, time total:     0.002834
+(0) time computation:     0.001311, time exchanging info:     0.000929, time global:     0.000359, time idle:     0.000809, time total:     0.002836
+(0) time computation:     0.001301, time exchanging info:     0.001092, time global:     0.000350, time idle:     0.001011, time total:     0.002950
+(0) time computation:     0.001297, time exchanging info:     0.000916, time global:     0.000331, time idle:     0.000838, time total:     0.002831
+(0) time computation:     0.001293, time exchanging info:     0.000937, time global:     0.000382, time idle:     0.000829, time total:     0.003007
+(0) time computation:     0.001255, time exchanging info:     0.000946, time global:     0.000466, time idle:     0.000816, time total:     0.003032
+(0) time computation:     0.001276, time exchanging info:     0.001160, time global:     0.000413, time idle:     0.000893, time total:     0.003003
+(0) time computation:     0.001282, time exchanging info:     0.001081, time global:     0.000332, time idle:     0.000868, time total:     0.002929
+(0) time computation:     0.001258, time exchanging info:     0.001002, time global:     0.000432, time idle:     0.000772, time total:     0.002873
+(0) time computation:     0.001289, time exchanging info:     0.000931, time global:     0.000329, time idle:     0.000801, time total:     0.002841
+
+44:
+(0) time computation:     0.001524, time exchanging info:     0.001002, time global:     0.000371, time idle:     0.000781, time total:     0.003118
+(0) time computation:     0.001504, time exchanging info:     0.001024, time global:     0.000378, time idle:     0.000780, time total:     0.003098
+(0) time computation:     0.001500, time exchanging info:     0.000982, time global:     0.000360, time idle:     0.000780, time total:     0.003082
+(0) time computation:     0.001523, time exchanging info:     0.001020, time global:     0.000344, time idle:     0.000799, time total:     0.003060
+(0) time computation:     0.001507, time exchanging info:     0.001094, time global:     0.000351, time idle:     0.000806, time total:     0.003140
+(0) time computation:     0.001581, time exchanging info:     0.001031, time global:     0.000384, time idle:     0.000940, time total:     0.003220
+(0) time computation:     0.001511, time exchanging info:     0.001061, time global:     0.000353, time idle:     0.000802, time total:     0.003163
+(0) time computation:     0.001504, time exchanging info:     0.001027, time global:     0.000344, time idle:     0.000763, time total:     0.003037
+(0) time computation:     0.001514, time exchanging info:     0.001055, time global:     0.000371, time idle:     0.000760, time total:     0.003317
+(0) time computation:     0.001523, time exchanging info:     0.000977, time global:     0.000394, time idle:     0.000704, time total:     0.003035
+
+50:
+(0) time computation:     0.002186, time exchanging info:     0.001204, time global:     0.000392, time idle:     0.000905, time total:     0.003984
+(0) time computation:     0.002149, time exchanging info:     0.001211, time global:     0.000392, time idle:     0.000906, time total:     0.003950
+(0) time computation:     0.002148, time exchanging info:     0.001165, time global:     0.000361, time idle:     0.000836, time total:     0.003898
+(0) time computation:     0.002199, time exchanging info:     0.001168, time global:     0.000409, time idle:     0.000808, time total:     0.003889
+(0) time computation:     0.002163, time exchanging info:     0.001261, time global:     0.000377, time idle:     0.000821, time total:     0.003950
+(0) time computation:     0.002188, time exchanging info:     0.001193, time global:     0.000408, time idle:     0.000808, time total:     0.003921
+(0) time computation:     0.002176, time exchanging info:     0.001190, time global:     0.000382, time idle:     0.000869, time total:     0.003944
+(0) time computation:     0.002189, time exchanging info:     0.001162, time global:     0.000375, time idle:     0.000812, time total:     0.003869
+(0) time computation:     0.002187, time exchanging info:     0.001158, time global:     0.000400, time idle:     0.000846, time total:     0.003958
+(0) time computation:     0.002146, time exchanging info:     0.001116, time global:     0.000380, time idle:     0.000853, time total:     0.003912
+(0) time computation:     0.002152, time exchanging info:     0.001171, time global:     0.000387, time idle:     0.000852, time total:     0.003881
+

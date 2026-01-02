@@ -1,0 +1,14 @@
+1:
+(0) time computation:    66.630094, time exchanging info:     0.000030, time global:     0.001353, time idle:     0.001034, time total:    66.634077
+2:
+(0) time computation:    35.009960, time exchanging info:     0.014075, time global:     0.005003, time idle:     0.407065, time total:    35.306472
+4:
+(0) time computation:    17.066259, time exchanging info:     0.097164, time global:     0.009121, time idle:     0.445720, time total:    17.294139
+8:
+(0) time computation:     9.338676, time exchanging info:     0.083149, time global:     0.009506, time idle:     0.877334, time total:     9.614104
+16:
+(0) time computation:     5.224785, time exchanging info:     0.158977, time global:     0.014209, time idle:     1.103645, time total:     5.481988
+32:
+(0) time computation:     2.315625, time exchanging info:     0.397024, time global:     0.015487, time idle:     1.297338, time total:     2.954887
+64:
+(0) time computation:     1.238336, time exchanging info:     0.541979, time global:     0.050849, time idle:     0.814928, time total:     2.012265
