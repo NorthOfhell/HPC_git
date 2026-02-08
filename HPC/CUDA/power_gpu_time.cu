@@ -11,7 +11,7 @@
 #include "cuda.h"
 
 #define DEBUG 0
-struct timespec t_start, t_end;
+struct timespec t_start, t_end, t2_start, t2_end;
 double CPU_runtime;
 double GPU_runtime;
 double GPU_commtime = 0;
@@ -32,8 +32,8 @@ float*  d_Lambda = NULL;
 float*  h_Lambda = NULL;
 float lamda=0;
 // Variables to change
-int GlobalSize = 50;         // this is the dimension of the matrix, GlobalSize*GlobalSize
-const int BLOCK_SIZE = 32;            // number of threads in each block
+int GlobalSize = 8000;         // this is the dimension of the matrix, GlobalSize*GlobalSize
+const int BLOCK_SIZE = 64;            // number of threads in each block
 const float EPS = 0.000005;    // tolerence of the error
 int max_iteration = 100;       // the maximum iteration steps
 
@@ -45,7 +45,7 @@ void UploadArray(float*, int);
 float CPUReduce(float*, int);
 void  Arguments(int, char**);
 void checkCardVersion(void);
-void Write_result(double CPU_time, double GPU_time, float CPU_Lambda, float GPU_Lambda);
+void Write_result(double CPU_time, double GPU_time, double GPU_comm, float CPU_Lambda, float GPU_Lambda);
 void Debug(const char *mesg, int terminate);
 
 // Kernels
@@ -215,11 +215,17 @@ __global__ void FindNormW(float* g_VecW, float * g_NormW, int N)
 
 void Sqrt_CPU(float * g_NormW, float * c_NormW)
 {
+    clock_gettime(CLOCK_REALTIME,&t2_start);
     cudaMemcpy(c_NormW, g_NormW, sizeof(float), cudaMemcpyDeviceToHost);
-    *c_NormW = sqrt(*c_NormW);
-    cudaMemcpy(g_NormW, c_NormW, sizeof(float), cudaMemcpyHostToDevice);
-}
+    clock_gettime(CLOCK_REALTIME,&t2_end);
+    GPU_commtime += (t2_end.tv_sec - t2_start.tv_sec) + 1e-9*(t2_end.tv_nsec - t2_start.tv_nsec);
 
+    *c_NormW = sqrt(*c_NormW);
+    clock_gettime(CLOCK_REALTIME,&t2_start);
+    cudaMemcpy(g_NormW, c_NormW, sizeof(float), cudaMemcpyHostToDevice);
+    clock_gettime(CLOCK_REALTIME,&t2_end);
+    GPU_commtime += (t2_end.tv_sec - t2_start.tv_sec) + 1e-9*(t2_end.tv_nsec - t2_start.tv_nsec);
+}
 
 __global__ void NormalizedW(float* g_VecV,float* g_VecW, float* g_NormW, int N)
 {
@@ -330,8 +336,11 @@ int main(int argc, char** argv)
     cudaMalloc((void**)&d_Lambda, lambda_size);
 
     //Copy from host memory to device memory
+    clock_gettime(CLOCK_REALTIME,&t2_start);
     cudaMemcpy(d_MatA, h_MatA, mat_size, cudaMemcpyHostToDevice);
     cudaMemcpy(d_VecV, h_VecV, vec_size, cudaMemcpyHostToDevice);
+    clock_gettime(CLOCK_REALTIME,&t2_end);
+    GPU_commtime += (t2_end.tv_sec - t2_start.tv_sec) + 1e-9*(t2_end.tv_nsec - t2_start.tv_nsec);
 
 	// cutilCheckError(cutStopTimer(timer_mem));
 	  
@@ -341,16 +350,15 @@ int main(int argc, char** argv)
 	{
 		Av_Product<<<blocksPerGrid, threadsPerBlock, sharedMemSize>>>(d_MatA, d_VecV, d_VecW, N);
         cudaDeviceSynchronize(); //Needed, kind of barrier to sychronize all threads
-
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             fprintf(stderr, "Av_Product launch failed: %s\n", cudaGetErrorString(err));
             exit(EXIT_FAILURE);
         }
+
         cudaMemset(d_NormW, 0, sizeof(float));
         FindNormW<<<blocksPerGrid, threadsPerBlock, sharedMemSize>>>(d_VecW, d_NormW, N);
         cudaDeviceSynchronize(); //Needed, kind of barrier to sychronize all threads
-
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             fprintf(stderr, "FindNormW launch failed: %s\n", cudaGetErrorString(err));
@@ -370,17 +378,24 @@ int main(int argc, char** argv)
         cudaMemset(d_Lambda, 0, sizeof(float));
         ComputeLamda<<<blocksPerGrid, threadsPerBlock, sharedMemSize>>>(d_VecV, d_VecW, d_Lambda, N);
         cudaDeviceSynchronize(); //Needed, kind of barrier to sychronize all threads
+
         err = cudaGetLastError();
         if (err != cudaSuccess) {
             fprintf(stderr, "ComputeLamda launch failed: %s\n", cudaGetErrorString(err));
             exit(EXIT_FAILURE);
         }
+		clock_gettime(CLOCK_REALTIME,&t2_start);
         cudaMemcpy(h_Lambda, d_Lambda, lambda_size, cudaMemcpyDeviceToHost);
+        clock_gettime(CLOCK_REALTIME,&t2_end);
+        GPU_commtime += (t2_end.tv_sec - t2_start.tv_sec) + 1e-9*(t2_end.tv_nsec - t2_start.tv_nsec);
+
+
 		printf("GPU lamda at %d: %f \n", i, *h_Lambda);
 		// If residual is lass than epsilon break
 		if(fabsf(old_lambda - *h_Lambda) < EPS)
 			break;
-		old_lambda = *h_Lambda;	
+		old_lambda = *h_Lambda;
+        cudaDeviceSynchronize(); //Needed, kind of barrier to sychronize all threads
 	}
     
 	
@@ -405,9 +420,10 @@ int main(int argc, char** argv)
     clock_gettime(CLOCK_REALTIME,&t_end);
     GPU_runtime = (t_end.tv_sec - t_start.tv_sec) + 1e-9*(t_end.tv_nsec - t_start.tv_nsec);
     printf("GPU: run time = %f secs.\n",GPU_runtime);
+    printf("GPU: comm time = %f secs.\n",GPU_commtime);
     // printf("Overall CPU Execution Time: %f (ms) \n", cutGetTimerValue(timer_CPU));
 
-    Write_result(CPU_runtime, GPU_runtime, lamda, *h_Lambda);
+    Write_result(CPU_runtime, GPU_runtime, GPU_commtime, lamda, *h_Lambda);
     
     Cleanup();
 }
@@ -498,16 +514,16 @@ void Debug(const char *mesg, int terminate)
     exit(1);
 }
 
-void Write_result(double CPU_time, double GPU_time, float CPU_Lambda, float GPU_Lambda)
+void Write_result(double CPU_time, double GPU_time, double GPU_comm, float CPU_Lambda, float GPU_Lambda)
 {
     FILE *f;
 
     char filename[100];
-    sprintf(filename, "shared%i_%i.dat", GlobalSize, BLOCK_SIZE);
+    sprintf(filename, "shared_comm%i_%i.dat", GlobalSize, BLOCK_SIZE);
     if ((f = fopen(filename, "a")) == NULL)
         Debug("Write_Grid fopen failed", 1);
 
-    fprintf(f, "%f|-|%f|-|%f|-|%f\n", CPU_time, GPU_time, CPU_Lambda, GPU_Lambda);
+    fprintf(f, "%f|-|%f|-|%f|-|%f|-|%f\n", CPU_time, GPU_time, GPU_comm, CPU_Lambda, GPU_Lambda);
 
   fclose(f);
 }

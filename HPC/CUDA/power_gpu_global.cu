@@ -12,6 +12,11 @@
 
 #define DEBUG 0
 
+struct timespec t_start, t_end, t2_start, t2_end;
+double CPU_runtime;
+double GPU_runtime;
+double GPU_commtime = 0;
+
 // Input Array Variables
 float* h_MatA = NULL;
 float* d_MatA = NULL;
@@ -28,8 +33,8 @@ float*  d_Lambda = NULL;
 float*  h_Lambda = NULL;
 float lamda=0;
 // Variables to change
-int GlobalSize = 4000;         // this is the dimension of the matrix, GlobalSize*GlobalSize
-const int BLOCK_SIZE = 100;            // number of threads in each block
+int GlobalSize = 50;         // this is the dimension of the matrix, GlobalSize*GlobalSize
+const int BLOCK_SIZE = 32;            // number of threads in each block
 const float EPS = 0.000005;    // tolerence of the error
 int max_iteration = 100;       // the maximum iteration steps
 
@@ -105,7 +110,7 @@ void RunCPUPowerMethod()
 		lamda= CPU_ComputeLamda();
 		printf("CPU lamda at %d: %f \n", i, lamda);
 		// If residual is lass than epsilon break
-		if(abs(oldLamda - lamda) < EPS)
+		if(fabsf(oldLamda - lamda) < EPS)
 			break;
 		oldLamda = lamda;	
 	
@@ -141,9 +146,17 @@ __global__ void FindNormW(float* g_VecW, float * g_NormW, int N)
 
 void Sqrt_CPU(float * g_NormW, float * c_NormW)
 {
+    clock_gettime(CLOCK_MONOTONIC,&t2_start);
     cudaMemcpy(c_NormW, g_NormW, sizeof(float), cudaMemcpyDeviceToHost);
+    clock_gettime(CLOCK_MONOTONIC,&t2_end);
+    GPU_commtime += (t2_end.tv_sec - t2_start.tv_sec) + 1e-9*(t2_end.tv_nsec - t2_start.tv_nsec);
+
     *c_NormW = sqrt(*c_NormW);
+    clock_gettime(CLOCK_MONOTONIC,&t2_start);
     cudaMemcpy(g_NormW, c_NormW, sizeof(float), cudaMemcpyHostToDevice);
+    clock_gettime(CLOCK_MONOTONIC,&t2_end);
+    GPU_commtime += (t2_end.tv_sec - t2_start.tv_sec) + 1e-9*(t2_end.tv_nsec - t2_start.tv_nsec);
+
 }
 
 __global__ void NormalizedW(float* g_VecV,float* g_VecW, float* g_NormW, int N)
@@ -176,10 +189,6 @@ int main(int argc, char** argv)
     cudaDeviceProp prop;
     cudaGetDeviceProperties(&prop, 0);
     printf("Shared mem per block: %zu bytes\n", prop.sharedMemPerBlock);
-
-    struct timespec t_start,t_end;
-    double CPU_runtime;
-    double GPU_runtime;
     Arguments(argc, argv);
 		
     int N = GlobalSize;
@@ -204,9 +213,9 @@ int main(int argc, char** argv)
     InitOne(h_VecV,N);
 
     printf("Power method in CPU starts\n");	   
-    clock_gettime(CLOCK_REALTIME,&t_start);
+    clock_gettime(CLOCK_MONOTONIC,&t_start);
     RunCPUPowerMethod();   // the lamda is already solved here
-    clock_gettime(CLOCK_REALTIME,&t_end);
+    clock_gettime(CLOCK_MONOTONIC,&t_end);
     CPU_runtime = (t_end.tv_sec - t_start.tv_sec) + 1e-9*(t_end.tv_nsec - t_start.tv_nsec);
     printf("CPU: run time = %f secs.\n",CPU_runtime);
     printf("Power method in CPU is finished\n");
@@ -220,7 +229,7 @@ int main(int argc, char** argv)
     // Initialize input matrix
     InitOne(h_VecV,N);
     
-    clock_gettime(CLOCK_REALTIME,&t_start);  // Here I start to count
+    clock_gettime(CLOCK_MONOTONIC,&t_start);  // Here I start to count
 
     // Set the kernel arguments
     int threadsPerBlock = BLOCK_SIZE;   
@@ -236,9 +245,13 @@ int main(int argc, char** argv)
     cudaMalloc((void**)&d_Lambda, lambda_size);
 
     //Copy from host memory to device memory
+    
+    clock_gettime(CLOCK_MONOTONIC,&t2_start);
     cudaMemcpy(d_MatA, h_MatA, mat_size, cudaMemcpyHostToDevice);
     cudaMemcpy(d_VecV, h_VecV, vec_size, cudaMemcpyHostToDevice);
-	// cutilCheckError(cutStopTimer(timer_mem));
+    clock_gettime(CLOCK_MONOTONIC,&t2_end);
+    GPU_commtime += (t2_end.tv_sec - t2_start.tv_sec) + 1e-9*(t2_end.tv_nsec - t2_start.tv_nsec);
+
 	  
    //Power method loops
    float old_lambda = 0;
@@ -280,11 +293,16 @@ int main(int argc, char** argv)
             fprintf(stderr, "ComputeLamda launch failed: %s\n", cudaGetErrorString(err));
             exit(EXIT_FAILURE);
         }
-		cudaMemcpy(h_Lambda, d_Lambda, lambda_size, cudaMemcpyDeviceToHost);
+        clock_gettime(CLOCK_MONOTONIC,&t2_start);
+        cudaMemcpy(h_Lambda, d_Lambda, lambda_size, cudaMemcpyDeviceToHost);
+        clock_gettime(CLOCK_MONOTONIC,&t2_end);
+        GPU_commtime += (t2_end.tv_sec - t2_start.tv_sec) + 1e-9*(t2_end.tv_nsec - t2_start.tv_nsec);
+
+		
 
 		printf("GPU lamda at %d: %f \n", i, *h_Lambda);
 		// If residual is lass than epsilon break
-		if(abs(old_lambda - *h_Lambda) < EPS)
+		if(fabsf(old_lambda - *h_Lambda) < EPS)
 			break;
 		old_lambda = *h_Lambda;	
 	}
@@ -308,7 +326,7 @@ int main(int argc, char** argv)
     
     
 
-    clock_gettime(CLOCK_REALTIME,&t_end);
+    clock_gettime(CLOCK_MONOTONIC,&t_end);
     GPU_runtime = (t_end.tv_sec - t_start.tv_sec) + 1e-9*(t_end.tv_nsec - t_start.tv_nsec);
     printf("GPU: run time = %f secs.\n",GPU_runtime);
     // printf("Overall CPU Execution Time: %f (ms) \n", cutGetTimerValue(timer_CPU));
