@@ -91,8 +91,14 @@ for key, a,b in zip(sorted(data.keys()), av_comp, av_comm):
 # Plot
 print(av_comp, av_comm)
 plt.figure()
-plt.plot(sorted(data.keys()), av_comp, label="time computation")
-plt.plot(sorted(data.keys()), av_comm , label="time communication")
+plt.plot(sorted(data.keys()), av_comp, linestyle= ":", c = "orange", linewidth=2.5)
+plt.plot(sorted(data.keys()), av_comm, linestyle=":", c = "cyan", linewidth=2.5)
+
+plt.scatter(sorted(data.keys()), av_comp, label="time computation", c = "red", s=40)
+plt.scatter(sorted(data.keys()), av_comm , label="time communication", c = "blue", s=40)
+
+
+
 plt.xlabel("grid size")
 plt.ylabel("time(s)")
 plt.legend()
